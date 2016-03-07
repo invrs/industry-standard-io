@@ -21,8 +21,11 @@ let test = factory()
   .base(class {
     hello(...args) {
       args // { a: 1, b: 2, args: { a: 1, b: 2 }, _args: [ "world" ] }
+      return true
     }
   })
 
-test().hello("world", { a: 1 }, { b: 2 })
+test().hello("world", { a: 1 }, { b: 2 }).then((value) => {
+  value // true
+})
 ```
