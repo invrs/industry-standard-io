@@ -49,7 +49,8 @@ describe("standard_io", () => {
   it("passes a single object to instance methods", () => {
     let base = class {
       hello(args) {
-        expect(args).toEqual(argument)
+        expect({ ...args, resolve: undefined, reject: undefined })
+          .toEqual(argument)
         called += 1
       }
     }
@@ -68,7 +69,8 @@ describe("standard_io", () => {
   it("passes a single object to class methods", () => {
     let base = class {
       static world(args) {
-        expect(args).toEqual(argument)
+        expect({ ...args, resolve: undefined, reject: undefined })
+          .toEqual(argument)
         called += 1
       }
     }
@@ -82,5 +84,29 @@ describe("standard_io", () => {
     test2("key").constructor.world(...params)
     
     expect(called).toBe(4)
+  })
+
+  it("makes hard returns thenable", (done) => {
+    let base = class {
+      hello() { return true }
+    }
+
+    let test = makeTest().base(base)
+    test().hello().then((args) => {
+      expect(args).toEqual(true)
+      done()
+    })
+  })
+
+  it("makes resolved functions thenable", (done) => {
+    let base = class {
+      hello({ resolve }) { resolve(true) }
+    }
+
+    let test = makeTest().base(base)
+    test().hello().then((args) => {
+      expect(args).toEqual(true)
+      done()
+    })
   })
 })
