@@ -24,7 +24,7 @@ export let standard_io = Class =>
           runAndReturn({ args, fn, bind_to: this })
       }
 
-      let ignore = [ "constructor", "factory", "functions" ]
+      let ignore = [ "constructor", "factory", "functions", "state" ]
 
       for (let [ name, fn ] of Class.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
