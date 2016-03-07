@@ -19,12 +19,16 @@ export let standard_io = Class =>
     constructor(...args) {
       super(objectArgument({ args }))
 
+      let ignore = [ "functions", "state" ]
+
       for (let [ name, fn ] of this.functions().entries()) {
-        this[name] = (...args) =>
-          runAndReturn({ args, fn, bind_to: this })
+        if (ignore.indexOf(name) == -1) {
+          this[name] = (...args) =>
+            runAndReturn({ args, fn, bind_to: this })
+        }
       }
 
-      let ignore = [ "constructor", "factory", "functions", "state" ]
+      ignore = [ "constructor", "factory", "functions", "state" ]
 
       for (let [ name, fn ] of Class.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
