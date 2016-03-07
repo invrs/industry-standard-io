@@ -1,5 +1,5 @@
 import { factory } from "industry"
-import { factory_instance } from "industry-factory-instance"
+import { instance } from "industry-instance"
 import { functions } from "industry-functions"
 import { standard_io } from "../../"
 
@@ -18,7 +18,7 @@ describe("standard_io", () => {
 
   function makeTest() {
     return factory()
-      .set("factory_instance", factory_instance)
+      .set("instance", instance)
       .set("functions", functions)
       .set("standard_io", standard_io)
   }

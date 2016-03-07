@@ -10,12 +10,12 @@ This extension must be paired with [IndustryFunctions](https://github.com/invrs/
 
 ```js
 import { factory } from "industry"
-import { factory_instance } from "industry-factory-instance"
+import { instance } from "industry-instance"
 import { functions } from "industry-functions"
 import { standard_io } from "industry-standard-io"
 
 let test = factory()
-  .set("factory_instance", factory_instance)
+  .set("instance", instance)
   .set("functions", functions)
   .set("standard_io", standard_io)
   .base(class {
