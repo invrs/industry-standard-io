@@ -18,8 +18,10 @@ export let standard_io = Class =>
   class extends Class {
     constructor(...args) {
       super(objectArgument({ args }))
+    }
 
-      let ignore = [ "functions", "state" ]
+    standardIO(ignore = []) {
+      ignore = ignore.concat([ "functions", "state" ])
 
       for (let [ name, fn ] of this.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
@@ -28,7 +30,7 @@ export let standard_io = Class =>
         }
       }
 
-      ignore = [ "constructor", "factory", "functions", "state" ]
+      ignore = ignore.concat([ "constructor", "factory" ])
 
       for (let [ name, fn ] of Class.functions().entries()) {
         if (ignore.indexOf(name) == -1) {

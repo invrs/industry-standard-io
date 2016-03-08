@@ -19,6 +19,10 @@ let test = factory()
   .set("functions", functions)
   .set("standard_io", standard_io)
   .base(class {
+    constructor() {
+      this.standardIO()
+    }
+    
     hello(...args) {
       args // { a: 1, b: 2, args: { a: 1, b: 2 }, _args: [ "world" ] }
       return true

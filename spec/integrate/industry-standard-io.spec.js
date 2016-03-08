@@ -48,6 +48,8 @@ describe("standard_io", () => {
 
   it("passes a single object to instance methods", () => {
     let base = class {
+      constructor() { this.standardIO() }
+
       hello(args) {
         expect({ ...args, resolve: undefined, reject: undefined })
           .toEqual(argument)
@@ -68,6 +70,8 @@ describe("standard_io", () => {
 
   it("passes a single object to class methods", () => {
     let base = class {
+      constructor() { this.standardIO() }
+      
       static world(args) {
         expect({ ...args, resolve: undefined, reject: undefined })
           .toEqual(argument)
@@ -88,6 +92,7 @@ describe("standard_io", () => {
 
   it("makes hard returns thenable", (done) => {
     let base = class {
+      constructor() { this.standardIO() }
       hello() { return true }
     }
 
@@ -100,6 +105,8 @@ describe("standard_io", () => {
 
   it("makes resolved functions thenable", (done) => {
     let base = class {
+      constructor() { this.standardIO() }
+      
       hello({ resolve }) { resolve(true) }
     }
 
