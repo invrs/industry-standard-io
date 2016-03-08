@@ -21,7 +21,9 @@ export let standard_io = Class =>
     }
 
     standardIO(ignore = []) {
-      ignore = ignore.concat([ "functions", "state", "stateful" ])
+      ignore = ignore.concat(
+        [ "functions", "include", "state", "stateful" ]
+      )
 
       for (let [ name, fn ] of this.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
