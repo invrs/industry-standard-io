@@ -9,9 +9,7 @@ describe("standard_io", () => {
   let argument = {
     a: 1, b: 2,
     args: { a: 1, b: 2 },
-    _args: [ 'hello' ],
-    resolve: undefined,
-    reject: undefined
+    _args: [ 'hello' ]
   }
 
   let params = [ { a: 1 }, { b: 2 }, "hello" ]
@@ -51,8 +49,9 @@ describe("standard_io", () => {
       constructor() { this.standardIO() }
 
       hello(args) {
-        expect({ ...args, resolve: undefined, reject: undefined })
-          .toEqual(argument)
+        delete args.promise
+        delete args.args.promise
+        expect(args).toEqual(argument)
         called += 1
       }
     }
@@ -73,8 +72,9 @@ describe("standard_io", () => {
       constructor() { this.standardIO() }
       
       static world(args) {
-        expect({ ...args, resolve: undefined, reject: undefined })
-          .toEqual(argument)
+        delete args.promise
+        delete args.args.promise
+        expect(args).toEqual(argument)
         called += 1
       }
     }
@@ -88,6 +88,50 @@ describe("standard_io", () => {
     test2("key").constructor.world(...params)
     
     expect(called).toBe(4)
+  })
+
+  it("passes a promise object to instance methods", () => {
+    let base = class {
+      constructor() { this.standardIO() }
+
+      hello(args) {
+        expect(args.promise).toEqual(jasmine.any(Object))
+        expect(args.promise.chain).toEqual(jasmine.any(Function))
+        expect(args.promise.reject).toEqual(jasmine.any(Function))
+        expect(args.promise.resolve).toEqual(jasmine.any(Function))
+      }
+    }
+
+    let test = makeTest().base(base)
+    test().hello(...params)
+  })
+
+  it("implements the chain function", (done) => {
+    let base = class {
+      constructor() { this.standardIO() }
+      
+      a() { return { a: 1 } }
+      b({ promise: { resolve } }) { resolve({ b: 2 }) }
+      c({ promise: { resolve } }) { setTimeout(() => resolve("c"), 1) }
+      d() { return { d: 4 } }
+      e() { return { e: 5 } }
+      f({ promise: { resolve } }) { resolve({ f: 6 }) }
+
+      run({ promise: { chain } }) {
+        return chain(this.a, this.b, chain(this.c, this.d), this.e, this.f)
+          .then(args => {
+            expect(args).toEqual({
+              a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6,
+              args: { a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6 },
+              _args: []
+            })
+            done()
+          })
+      }
+    }
+
+    let test = makeTest().base(base)
+    test().run()
   })
 
   it("makes hard returns thenable", (done) => {
@@ -107,11 +151,13 @@ describe("standard_io", () => {
     let base = class {
       constructor() { this.standardIO() }
       
-      hello({ resolve }) { resolve(true) }
+      hello({ promise: { resolve } }) { resolve(true) }
     }
 
     let test = makeTest().base(base)
-    test().hello().then((args) => {
+    let output = test().hello()
+    expect(output.value).toEqual(true)
+    output.then((args) => {
       expect(args).toEqual(true)
       done()
     })
