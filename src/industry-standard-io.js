@@ -1,12 +1,26 @@
 import { objectArgument, returnObject } from "standard-io"
 
+function withoutThen(obj) {
+  let obj2 = {}
+  for (let key in obj) {
+    if (key != "then") {
+      obj2[key] = obj[key]
+    }
+  }
+  return obj2
+}
+
 function chainArg(args, value) {
   [ "_args", "args", "promise" ].forEach(key => {
     delete args[key]
     delete value[key]
   })
 
-  return objectArgument({ args: [ args, value, { value } ] })
+  if (typeof value != "object") {
+    value = { value }
+  }
+
+  return objectArgument({ args: [ args, withoutThen(value) ] })
 }
 
 function resolveReject() {
@@ -39,11 +53,9 @@ function runAndReturn({ args, fn, bind_to }) {
           })
       } else if (typeof c == "function") {
         let value = c(args)
-        if (value.value) {
-          args = chainArg(args, value.value)
-        }
+        args = chainArg(args, value)
         if (promise) {
-          promise = promise.then(c)
+          promise = promise.then(() => value)
         } else if (value.then) {
           promise = value
         }

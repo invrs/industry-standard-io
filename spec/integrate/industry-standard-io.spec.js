@@ -129,16 +129,20 @@ describe("standard_io", () => {
 
     let test = makeTest().base(base)
     let value = test().run()
-    
-    expect(value.value).toEqual({ f: 6 })
+    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: true }
     
     value.then(args => {
       expect(args).toEqual({
-        a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { f: 6 },
-        args: { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { f: 6 } },
+        ...expected,
+        args: expected,
         _args: []
       })
       done()
+    })
+
+    delete value.then
+    expect(value).toEqual({
+      a: 1, b: 2, d: 4, e: 5, f: 6, value: { f: 6 }
     })
   })
 
@@ -158,7 +162,7 @@ describe("standard_io", () => {
     expect(test().run().value).toBe("b")
   })
 
-  it("allows chains from multiple functions", () => {
+  it("allows chains from multiple functions", (done) => {
     let base = class {
       constructor() { this.standardIO() }
       
@@ -183,9 +187,19 @@ describe("standard_io", () => {
     let test = makeTest().base(base)
     
     let output = test().run()
-    delete output.then
+    let expected = { a: 1, b: 2, c: 3, d: 4, value: { d: 4 } }
 
-    expect(output).toEqual({ value: { d: 4 }, a: 1, b: 2, d: 4 })
+    output.then(args => {
+      expect(args).toEqual({
+        ...expected,
+        args: expected,
+        _args: []
+      })
+      done()
+    })
+
+    delete output.then
+    expect(output).toEqual(expected)
   })
 
   it("makes hard returns thenable", (done) => {
