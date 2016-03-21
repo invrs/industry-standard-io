@@ -27,7 +27,6 @@ function runAndReturn({ args, fn, bind_to }) {
   
   let chainer = (...chains) => {
     let promise
-    let v
     
     chains.forEach(c => {
       if (c && c.then) {
@@ -39,24 +38,18 @@ function runAndReturn({ args, fn, bind_to }) {
             return args
           })
       } else if (typeof c == "function") {
-        let value
-        if (!promise) {
-          value = c(args)
-          if (value.value) {
-            v = value.value
-            args = chainArg(args, v)
-          } else if (value.then) {
-            promise = value
-          }
-        } else {
-          promise = promise.then(c)
+        let value = c(args)
+        if (value.value) {
+          args = chainArg(args, value.value)
         }
         if (promise) {
-          promise = promise
-            .then(value => args = chainArg(args, value))
+          promise = promise.then(c)
+        } else if (value.then) {
+          promise = value
         }
+        promise = promise
+          .then(value => args = chainArg(args, value))
       } else {
-        if (c) { v = c }
         promise = promise || Promise.resolve(args)
         promise = promise
           .then(value => args = chainArg(args, value))

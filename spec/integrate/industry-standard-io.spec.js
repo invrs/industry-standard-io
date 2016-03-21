@@ -117,16 +117,17 @@ describe("standard_io", () => {
       e() { return { e: 5 } }
       f({ promise: { resolve } }) { resolve({ f: 6 }) }
       empty({ promise: { resolve }, value }) { return value || true }
+      chain({ promise: { chain } }) { return chain(this.c, this.empty, this.d) }
 
       run({ promise: { chain } }) {
-        return chain(this.a, this.empty, this.b, chain(this.c, this.empty, this.d), this.e, this.f)
+        return chain(this.a, this.empty, this.b, this.chain, this.e, this.f)
       }
     }
 
     let test = makeTest().base(base)
     let value = test().run()
     
-    expect(value.value).toEqual({ b: 2 })
+    expect(value.value).toEqual({ f: 6 })
     
     value.then(args => {
       expect(args).toEqual({
