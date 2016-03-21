@@ -29,22 +29,40 @@ function runAndReturn({ args, fn, bind_to }) {
   let { promise, resolve, reject, status } = resolveReject()
   
   let chainer = (...chains) => {
-    let promise = Promise.resolve(args)
+    let promise
+    let v
     
     chains.forEach(c => {
       if (c && c.then) {
+        promise = promise || Promise.resolve(args)
         promise = promise.then(() => c)
       } else if (typeof c == "function") {
-        promise = promise
-          .then(c)
-          .then(value => args = chainArg(args, value))
+        let value
+        if (!promise) {
+          value = c(args)
+          if (value.value) {
+            v = value.value
+            args = chainArg(args, v)
+          } else {
+            promise = value
+          }
+        } else {
+          promise = promise.then(c)
+        }
+        if (promise) {
+          promise = promise
+            .then(value => args = chainArg(args, value))
+        }
       } else {
+        if (c) { v = c }
+        promise = promise || Promise.resolve(args)
         promise = promise
-          .then(() => args = chainArg(args, c))
+          .then(value => args = chainArg(args, value))
       }
     })
 
-    return promise
+    promise = promise || Promise.resolve(args)
+    return { then: promise.then.bind(promise), value: v }
   }
   
   args.push({ promise: { chain: chainer, resolve, reject } })

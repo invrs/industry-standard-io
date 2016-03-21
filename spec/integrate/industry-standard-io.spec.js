@@ -119,19 +119,36 @@ describe("standard_io", () => {
 
       run({ promise: { chain } }) {
         return chain(this.a, this.b, chain(this.c, this.d), this.e, this.f)
-          .then(args => {
-            expect(args).toEqual({
-              a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6,
-              args: { a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6 },
-              _args: []
-            })
-            done()
-          })
       }
     }
 
     let test = makeTest().base(base)
-    test().run()
+    let value = test().run()
+    expect(value.value).toEqual({ b: 2 })
+    value.then(args => {
+      expect(args).toEqual({
+        a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6,
+        args: { a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6 },
+        _args: []
+      })
+      done()
+    })
+  })
+
+  it("returns a synchronous value from the chain function", () => {
+    let base = class {
+      constructor() { this.standardIO() }
+      
+      a() { return "a" }
+      b({ promise: { resolve } }) { resolve("b") }
+
+      run({ promise: { chain } }) {
+        return chain(this.a, this.b)
+      }
+    }
+
+    let test = makeTest().base(base)
+    expect(test().run().value).toBe("b")
   })
 
   it("makes hard returns thenable", (done) => {
