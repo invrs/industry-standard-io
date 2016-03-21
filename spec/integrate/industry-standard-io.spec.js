@@ -112,23 +112,26 @@ describe("standard_io", () => {
       
       a() { return { a: 1 } }
       b({ promise: { resolve } }) { resolve({ b: 2 }) }
-      c({ promise: { resolve } }) { setTimeout(() => resolve("c"), 1) }
+      c({ promise: { resolve } }) { setTimeout(() => resolve({ c: 3 }), 1) }
       d() { return { d: 4 } }
       e() { return { e: 5 } }
       f({ promise: { resolve } }) { resolve({ f: 6 }) }
+      empty({ promise: { resolve }, value }) { return value || true }
 
       run({ promise: { chain } }) {
-        return chain(this.a, this.b, chain(this.c, this.d), this.e, this.f)
+        return chain(this.a, this.empty, this.b, chain(this.c, this.empty, this.d), this.e, this.f)
       }
     }
 
     let test = makeTest().base(base)
     let value = test().run()
+    
     expect(value.value).toEqual({ b: 2 })
+    
     value.then(args => {
       expect(args).toEqual({
-        a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6,
-        args: { a: 1, b: 2, value: 'c', d: 4, e: 5, f: 6 },
+        a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { f: 6 },
+        args: { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { f: 6 } },
         _args: []
       })
       done()
@@ -149,6 +152,36 @@ describe("standard_io", () => {
 
     let test = makeTest().base(base)
     expect(test().run().value).toBe("b")
+  })
+
+  it("allows chains from multiple functions", () => {
+    let base = class {
+      constructor() { this.standardIO() }
+      
+      a() { return { a: 1 } }
+      b() { return { b: 2 } }
+      c() { return { c: 3 } }
+      d() { return { d: 4 } }
+
+      chain({ promise: { chain } }) {
+        return chain(this.c, this.d)
+      }
+
+      chain2({ promise: { chain } }) {
+        return chain(this.a, this.b, this.chain)
+      }
+
+      run({ promise: { chain } }) {
+        return this.chain2()
+      }
+    }
+
+    let test = makeTest().base(base)
+    
+    let output = test().run()
+    delete output.then
+
+    expect(output).toEqual({ value: { d: 4 }, a: 1, b: 2, d: 4 })
   })
 
   it("makes hard returns thenable", (done) => {

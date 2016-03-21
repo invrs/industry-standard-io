@@ -1,15 +1,12 @@
 import { objectArgument, returnObject } from "standard-io"
 
 function chainArg(args, value) {
-  delete args._args
-  delete args.args
-  delete args.promise
+  [ "_args", "args", "promise" ].forEach(key => {
+    delete args[key]
+    delete value[key]
+  })
 
-  if (typeof value != "object") {
-    value = { value }
-  }
-
-  return objectArgument({ args: [ args, value ] })
+  return objectArgument({ args: [ args, value, { value } ] })
 }
 
 function resolveReject() {
@@ -35,7 +32,12 @@ function runAndReturn({ args, fn, bind_to }) {
     chains.forEach(c => {
       if (c && c.then) {
         promise = promise || Promise.resolve(args)
-        promise = promise.then(() => c)
+        promise = promise
+          .then(() => c)
+          .then(value => {
+            args = chainArg(args, value)
+            return args
+          })
       } else if (typeof c == "function") {
         let value
         if (!promise) {
@@ -43,7 +45,7 @@ function runAndReturn({ args, fn, bind_to }) {
           if (value.value) {
             v = value.value
             args = chainArg(args, v)
-          } else {
+          } else if (value.then) {
             promise = value
           }
         } else {
@@ -62,7 +64,10 @@ function runAndReturn({ args, fn, bind_to }) {
     })
 
     promise = promise || Promise.resolve(args)
-    return { then: promise.then.bind(promise), value: v }
+    let output = returnObject({ value: args.args })
+    output.then = promise.then.bind(promise)
+
+    return output
   }
   
   args.push({ promise: { chain: chainer, resolve, reject } })
@@ -84,9 +89,9 @@ export let standard_io = Class =>
     }
 
     standardIO(ignore = []) {
-      ignore = ignore.concat(
-        [ "functions", "include", "standardIO", "state", "stateful" ]
-      )
+      ignore = ignore.concat([
+        "functions", "include", "standardIO", "state", "stateful"
+      ])
 
       for (let [ name, fn ] of this.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
