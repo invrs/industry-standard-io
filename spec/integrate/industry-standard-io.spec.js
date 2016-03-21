@@ -120,7 +120,10 @@ describe("standard_io", () => {
       chain({ promise: { chain } }) { return chain(this.c, this.empty, this.d) }
 
       run({ promise: { chain } }) {
-        return chain(this.a, this.empty, this.b, this.chain, this.e, this.f)
+        return chain(
+          chain(this.a, this.empty),
+          this.b, this.chain, this.e, this.f
+        )
       }
     }
 
