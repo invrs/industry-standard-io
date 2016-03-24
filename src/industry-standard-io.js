@@ -10,7 +10,7 @@ function withoutThen(obj) {
   return obj2
 }
 
-function chainArg(args, value) {
+function chainArg(args, value={}) {
   [ "_args", "args", "promise" ].forEach(key => {
     delete args[key]
     delete value[key]
