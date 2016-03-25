@@ -36,7 +36,7 @@ function resolveReject() {
   return { promise, resolve: resolver, reject, status }
 }
 
-function runAndReturn({ args, fn, bind_to }) {
+function runAndReturn({ args, fn, name, bind_to }) {
   let { promise, resolve, reject, status } = resolveReject()
   
   let chainer = (...chains) => {
@@ -54,7 +54,9 @@ function runAndReturn({ args, fn, bind_to }) {
         if (typeof c == "function") {
           c = c(args)
         }
-        if (c.value == undefined && c.then) {
+        if (!c) {
+          // do nothing
+        } else if (c.value == undefined && c.then) {
           promise = c.then(output => {
             args = chainArg(args, output)
             return args
@@ -100,7 +102,7 @@ export let standard_io = Class =>
       for (let [ name, fn ] of this.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
           this[name] = (...args) =>
-            runAndReturn({ args, fn, bind_to: this })
+            runAndReturn({ args, fn, name, bind_to: this })
         }
       }
 
@@ -109,7 +111,7 @@ export let standard_io = Class =>
       for (let [ name, fn ] of Class.functions().entries()) {
         if (ignore.indexOf(name) == -1) {
           this.constructor[name] = (...args) =>
-            runAndReturn({ args, fn, bind_to: this.constructor })
+            runAndReturn({ args, fn, name, bind_to: this.constructor })
         }
       }
     }
