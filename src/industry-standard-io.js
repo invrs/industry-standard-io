@@ -43,30 +43,29 @@ function runAndReturn({ args, fn, bind_to }) {
     let promise
     
     chains.forEach(c => {
-      if (c && c.then) {
-        promise = promise || Promise.resolve(args)
+      if (promise) {
         promise = promise
-          .then(() => c)
-          .then(value => {
-            args = chainArg(args, value)
+          .then(() => c(args))
+          .then(output => {
+            args = chainArg(args, output)
             return args
           })
-      } else if (typeof c == "function") {
-        let value = c(args)
-        args = chainArg(args, value)
-        if (promise) {
-          promise = promise.then(() => value)
-        } else if (value.then) {
-          promise = value
-        }
-        promise = promise
-          .then(value => args = chainArg(args, value))
       } else {
-        promise = promise || Promise.resolve(args)
-        promise = promise
-          .then(value => args = chainArg(args, value))
+        if (typeof c == "function") {
+          c = c(args)
+        }
+        if (c.value == undefined && c.then) {
+          promise = c.then(output => {
+            args = chainArg(args, output)
+            return args
+          })
+        } else {
+          args = chainArg(args, c)
+        }
       }
     })
+
+    args = chainArg(args)
 
     promise = promise || Promise.resolve(args)
     let output = returnObject({ value: args.args })

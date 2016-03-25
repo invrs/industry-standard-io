@@ -111,25 +111,25 @@ describe("standard_io", () => {
       constructor() { this.standardIO() }
       
       a() { return { a: 1 } }
-      b({ promise: { resolve } }) { resolve({ b: 2 }) }
+      b() { return { b: 2 } }
       c({ promise: { resolve } }) { setTimeout(() => resolve({ c: 3 }), 1) }
-      d() { return { d: 4 } }
+      d({ promise: { resolve } }) { resolve({ d: 4 }) }
       e() { return { e: 5 } }
       f({ promise: { resolve } }) { resolve({ f: 6 }) }
-      empty({ promise: { resolve }, value }) { return value || true }
+      empty({ value }) { return value || true }
       chain({ promise: { chain } }) { return chain(this.c, this.empty, this.d) }
 
       run({ promise: { chain } }) {
         return chain(
           chain(this.a, this.empty),
-          this.b, this.chain, this.e, this.f
+          this.b, this.c, this.chain, this.e, this.f
         )
       }
     }
 
     let test = makeTest().base(base)
     let value = test().run()
-    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: true }
+    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { b: 2 } }
     
     value.then(args => {
       expect(args).toEqual({
@@ -142,7 +142,7 @@ describe("standard_io", () => {
 
     delete value.then
     expect(value).toEqual({
-      a: 1, b: 2, d: 4, e: 5, f: 6, value: { f: 6 }
+      a: 1, b: 2, value: { b: 2 }
     })
   })
 
