@@ -22,6 +22,11 @@
   },
   "homepage": "https://github.com/invrs/industry-standard-io#readme",
   "dependencies": {
+<<<<<<< HEAD
+    "babel-runtime": "^6.6.1",
+=======
+    "industry": "",
+>>>>>>> parent of 89e35a8... Using babel-runtime
     "standard-io": ""
   },
   "devDependencies": {
