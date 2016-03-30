@@ -23,7 +23,7 @@
   "homepage": "https://github.com/invrs/industry-standard-io#readme",
   "dependencies": {
     "babel-runtime": "^6.6.1",
-    "standard-io": ""
+    "standard-io": "^0.0.11"
   },
   "devDependencies": {
     "babel": "^6.5.2",
