@@ -46,8 +46,6 @@ describe("standard_io", () => {
 
   it("passes a single object to instance methods", () => {
     let base = class {
-      constructor() { this.standardIO() }
-
       hello(args) {
         delete args.promise
         delete args.args.promise
@@ -69,8 +67,6 @@ describe("standard_io", () => {
 
   it("passes a single object to class methods", () => {
     let base = class {
-      constructor() { this.standardIO() }
-      
       static world(args) {
         delete args.promise
         delete args.args.promise
@@ -82,18 +78,16 @@ describe("standard_io", () => {
     let test = makeTest().base(base)
     let test2 = makeTest().base(base)
 
-    test().constructor.world(...params)
-    test("key").constructor.world(...params)
-    test2().constructor.world(...params)
-    test2("key").constructor.world(...params)
+    test().Class.world(...params)
+    test("key").Class.world(...params)
+    test2().Class.world(...params)
+    test2("key").Class.world(...params)
     
     expect(called).toBe(4)
   })
 
   it("passes a promise object to instance methods", () => {
     let base = class {
-      constructor() { this.standardIO() }
-
       hello(args) {
         expect(args.promise).toEqual(jasmine.any(Object))
         expect(args.promise.chain).toEqual(jasmine.any(Function))
@@ -108,8 +102,6 @@ describe("standard_io", () => {
 
   it("implements the chain function", (done) => {
     let base = class {
-      constructor() { this.standardIO() }
-      
       a() { return { a: 1 } }
       b() { return { b: 2 } }
       c({ promise: { resolve } }) { setTimeout(() => resolve({ c: 3 }), 1) }
@@ -148,8 +140,6 @@ describe("standard_io", () => {
 
   it("returns a synchronous value from the chain function", () => {
     let base = class {
-      constructor() { this.standardIO() }
-      
       a() { return "a" }
       b({ promise: { resolve } }) { resolve("b") }
 
@@ -164,8 +154,6 @@ describe("standard_io", () => {
 
   it("allows chains from multiple functions", (done) => {
     let base = class {
-      constructor() { this.standardIO() }
-      
       a() { return { a: 1 } }
       b() { return { b: 2 } }
       c() { return { c: 3 } }
@@ -204,7 +192,6 @@ describe("standard_io", () => {
 
   it("makes hard returns thenable", (done) => {
     let base = class {
-      constructor() { this.standardIO() }
       hello() { return true }
     }
 
@@ -217,14 +204,14 @@ describe("standard_io", () => {
 
   it("makes resolved functions thenable", (done) => {
     let base = class {
-      constructor() { this.standardIO() }
-      
       hello({ promise: { resolve } }) { resolve(true) }
     }
 
     let test = makeTest().base(base)
     let output = test().hello()
+    
     expect(output.value).toEqual(true)
+    
     output.then((args) => {
       expect(args).toEqual(true)
       done()

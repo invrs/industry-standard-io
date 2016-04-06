@@ -23,6 +23,23 @@ function chainArg(args, value={}) {
   return objectArgument({ args: [ args, withoutThen(value) ] })
 }
 
+function patch(type) {
+  if (this._standard_io) {
+    return
+  }
+
+  this._standard_io = true
+  let ignore = this.industry().ignore[type]
+  
+  for (let name in this.functions()) {
+    if (ignore.indexOf(name) == -1) {
+      let fn = this[name]
+      this[name] = (...args) =>
+        runAndReturn({ args, fn, name, bind_to: this })
+    }
+  }
+}
+
 function resolveReject() {
   let resolve, reject
   let promise = new Promise((...args) => {
@@ -94,25 +111,11 @@ export let standard_io = Class =>
       super(objectArgument({ args }))
     }
 
-    standardIO(ignore = []) {
-      ignore = ignore.concat([
-        "functions", "include", "standardIO", "state", "stateful"
-      ])
+    static beforeFactory() {
+      patch.bind(this)("Class")
+    }
 
-      for (let [ name, fn ] of this.functions().entries()) {
-        if (ignore.indexOf(name) == -1) {
-          this[name] = (...args) =>
-            runAndReturn({ args, fn, name, bind_to: this })
-        }
-      }
-
-      ignore = ignore.concat([ "constructor", "factory" ])
-
-      for (let [ name, fn ] of Class.functions().entries()) {
-        if (ignore.indexOf(name) == -1) {
-          this.constructor[name] = (...args) =>
-            runAndReturn({ args, fn, name, bind_to: this.constructor })
-        }
-      }
+    afterFactory() {
+      patch.bind(this)("instance")
     }
   }
