@@ -113,9 +113,11 @@ export let standard_io = Class =>
 
     static beforeFactory() {
       patch.bind(this)("Class")
+      super.beforeFactory()
     }
 
     afterFactory() {
       patch.bind(this)("instance")
+      super.afterFactory()
     }
   }
