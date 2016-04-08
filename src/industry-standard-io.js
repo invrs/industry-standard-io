@@ -10,7 +10,7 @@ function withoutThen(obj) {
   return obj2
 }
 
-function chainArg(args, value={}) {
+function chainArg({ args, ignore, value={} }) {
   [ "_args", "args", "promise" ].forEach(key => {
     delete args[key]
     delete value[key]
@@ -20,15 +20,18 @@ function chainArg(args, value={}) {
     value = { value }
   }
 
-  return objectArgument({ args: [ args, withoutThen(value) ] })
+  return objectArgument({
+    args: [ args, withoutThen(value) ],
+    ignore
+  })
 }
 
-function patch(ignore) {
+function patch(ignore, type) {
   for (let name in this.functions()) {
-    if (ignore.indexOf(name) == -1) {
+    if (ignore[type].indexOf(name) == -1) {
       let fn = this[name]
       this[name] = (...args) =>
-        runAndReturn({ args, fn, name, bind_to: this })
+        runAndReturn({ args, fn, ignore, name, bind_to: this })
     }
   }
 }
@@ -46,8 +49,9 @@ function resolveReject() {
   return { promise, resolve: resolver, reject, status }
 }
 
-function runAndReturn({ args, fn, name, bind_to }) {
+function runAndReturn({ args, fn, ignore, name, bind_to }) {
   let { promise, resolve, reject, status } = resolveReject()
+  ignore = ignore.args
   
   let chainer = (...chains) => {
     let promise
@@ -56,8 +60,8 @@ function runAndReturn({ args, fn, name, bind_to }) {
       if (promise) {
         promise = promise
           .then(() => c(args))
-          .then(output => {
-            args = chainArg(args, output)
+          .then(value => {
+            args = chainArg({ args, value, ignore })
             return args
           })
       } else {
@@ -67,17 +71,17 @@ function runAndReturn({ args, fn, name, bind_to }) {
         if (!c) {
           // do nothing
         } else if (c.value == undefined && c.then) {
-          promise = c.then(output => {
-            args = chainArg(args, output)
+          promise = c.then(value => {
+            args = chainArg({ args, value, ignore })
             return args
           })
         } else {
-          args = chainArg(args, c)
+          args = chainArg({ args, value: c, ignore })
         }
       }
     })
 
-    args = chainArg(args)
+    args = chainArg({ args, ignore })
 
     promise = promise || Promise.resolve(args)
     let output = returnObject({ value: args.args })
@@ -87,7 +91,7 @@ function runAndReturn({ args, fn, name, bind_to }) {
   }
   
   args.push({ promise: { chain: chainer, resolve, reject } })
-  args = objectArgument({ args })
+  args = objectArgument({ args, ignore })
 
   let value = fn.bind(bind_to)(args)
 
@@ -100,17 +104,18 @@ function runAndReturn({ args, fn, name, bind_to }) {
 
 export let standard_io = Class =>
   class extends Class {
-    constructor(...args) {
-      super(objectArgument({ args }))
-    }
-
     static beforeFactoryOnce() {
-      patch.bind(this)(this.industry().ignore.Class)
+      this.industry({
+        ignore: {
+          args: [ "promise" ]
+        }
+      })
+      patch.bind(this)(this.industry().ignore, "Class")
       super.beforeFactoryOnce()
     }
 
     beforeInit() {
-      patch.bind(this)(this.Class.industry().ignore.Class)
+      patch.bind(this)(this.Class.industry().ignore, "instance")
       super.beforeInit()
     }
   }

@@ -27,7 +27,9 @@ describe("standard_io", () => {
 
   it("passes a single object to the constructor", () => {
     let base = class {
-      constructor(args) {
+      init(args) {
+        delete args.promise
+        args._args = args._args.filter(item => item != "key")
         expect(args).toEqual(argument)
         called += 1
       }
