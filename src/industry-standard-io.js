@@ -23,14 +23,7 @@ function chainArg(args, value={}) {
   return objectArgument({ args: [ args, withoutThen(value) ] })
 }
 
-function patch(type) {
-  if (this._standard_io) {
-    return
-  }
-
-  this._standard_io = true
-  let ignore = this.industry().ignore[type]
-  
+function patch(ignore) {
   for (let name in this.functions()) {
     if (ignore.indexOf(name) == -1) {
       let fn = this[name]
@@ -111,13 +104,13 @@ export let standard_io = Class =>
       super(objectArgument({ args }))
     }
 
-    static beforeFactory() {
-      patch.bind(this)("Class")
-      super.beforeFactory()
+    static beforeFactoryOnce() {
+      patch.bind(this)(this.industry().ignore.Class)
+      super.beforeFactoryOnce()
     }
 
-    afterFactory() {
-      patch.bind(this)("instance")
-      super.afterFactory()
+    beforeInit() {
+      patch.bind(this)(this.Class.industry().ignore.Class)
+      super.beforeInit()
     }
   }
