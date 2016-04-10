@@ -1,29 +1,54 @@
 import { objectArgument, returnObject } from "standard-io"
 
-function withoutThen(obj) {
-  let obj2 = {}
-  for (let key in obj) {
-    if (key != "then") {
-      obj2[key] = obj[key]
-    }
+function chainer({ args, bind_to, fn }) {
+  return (...chains) => {
+    let rand = Math.floor(Math.random() * (100 + 1))
+    let promise
+
+    chains.forEach(c => {
+      if (promise) {
+        promise = promise
+          .then(() => c(args))
+          .then(value => {
+            mergeArgs({ args, value })
+            return args
+          })
+      } else {
+        if (typeof c == "function") {
+          c = c(args)
+        }
+        if (!c) {
+          // do nothing
+        } else if (c.async || (c.value == undefined && c.then)) {
+          args.async = true
+          promise = c.then(value => {
+            mergeArgs({ args, value })
+            return args
+          })
+        } else {
+          mergeArgs({ args, value: c })
+        }
+      }
+    })
+
+    promise = promise || Promise.resolve(args)
+    let output = returnObject({ value: args })
+    output.then = promise.then.bind(promise)
+
+    return output
   }
-  return obj2
 }
 
-function chainArg({ args, ignore, value={} }) {
-  [ "_args", "args", "promise" ].forEach(key => {
-    delete args[key]
-    delete value[key]
-  })
-
-  if (typeof value != "object") {
-    value = { value }
+function mergeArgs({ args, value={} }) {
+  if (typeof value == "object") {
+    for (let key in value) {
+      if (key != "then") {
+        args[key] = value[key]
+      }
+    }
+  } else {
+    args.value = value
   }
-
-  return objectArgument({
-    args: [ args, withoutThen(value) ],
-    ignore
-  })
 }
 
 function patch(ignore, type) {
@@ -51,48 +76,13 @@ function resolveReject() {
 
 function runAndReturn({ args, fn, ignore, name, bind_to }) {
   let { promise, resolve, reject, status } = resolveReject()
+
   ignore = ignore.args
-  
-  let chainer = (...chains) => {
-    let promise
-    
-    chains.forEach(c => {
-      if (promise) {
-        promise = promise
-          .then(() => c(args))
-          .then(value => {
-            args = chainArg({ args, value, ignore })
-            return args
-          })
-      } else {
-        if (typeof c == "function") {
-          c = c(args)
-        }
-        if (!c) {
-          // do nothing
-        } else if (c.value == undefined && c.then) {
-          promise = c.then(value => {
-            args = chainArg({ args, value, ignore })
-            return args
-          })
-        } else {
-          args = chainArg({ args, value: c, ignore })
-        }
-      }
-    })
 
-    args = chainArg({ args, ignore })
-
-    promise = promise || Promise.resolve(args)
-    let output = returnObject({ value: args.args })
-    output.then = promise.then.bind(promise)
-
-    return output
-  }
-  
-  args.push({ promise: { chain: chainer, resolve, reject } })
   args = objectArgument({ args, ignore })
-
+  let chain = chainer({ args: args.args, bind_to, fn })
+  args.promise = { chain, resolve, reject }
+  
   let value = fn.bind(bind_to)(args)
 
   if (status.value) {

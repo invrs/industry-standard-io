@@ -50,7 +50,6 @@ describe("standard_io", () => {
     let base = class {
       hello(args) {
         delete args.promise
-        delete args.args.promise
         expect(args).toEqual(argument)
         called += 1
       }
@@ -71,7 +70,6 @@ describe("standard_io", () => {
     let base = class {
       static world(args) {
         delete args.promise
-        delete args.args.promise
         expect(args).toEqual(argument)
         called += 1
       }
@@ -116,27 +114,23 @@ describe("standard_io", () => {
       run({ promise: { chain } }) {
         return chain(
           chain(this.a, this.empty),
-          this.b, this.c, this.chain, this.e, this.f
+          this.b, this.chain, this.e, this.f
         )
       }
     }
 
     let test = makeTest().base(base)
     let value = test().run()
-    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, value: { b: 2 } }
+    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, async: true, value: { b: 2 } }
     
     value.then(args => {
-      expect(args).toEqual({
-        ...expected,
-        args: expected,
-        _args: []
-      })
+      expect(args).toEqual(expected)
       done()
     })
 
     delete value.then
     expect(value).toEqual({
-      a: 1, b: 2, value: { b: 2 }
+      a: 1, b: 2, async: true, value: { b: 2 }
     })
   })
 
@@ -180,11 +174,7 @@ describe("standard_io", () => {
     let expected = { a: 1, b: 2, c: 3, d: 4, value: { d: 4 } }
 
     output.then(args => {
-      expect(args).toEqual({
-        ...expected,
-        args: expected,
-        _args: []
-      })
+      expect(args).toEqual(expected)
       done()
     })
 
