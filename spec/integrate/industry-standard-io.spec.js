@@ -90,7 +90,6 @@ describe("standard_io", () => {
     let base = class {
       hello(args) {
         expect(args.promise).toEqual(jasmine.any(Object))
-        expect(args.promise.chain).toEqual(jasmine.any(Function))
         expect(args.promise.reject).toEqual(jasmine.any(Function))
         expect(args.promise.resolve).toEqual(jasmine.any(Function))
       }
@@ -98,88 +97,6 @@ describe("standard_io", () => {
 
     let test = makeTest().base(base)
     test().hello(...params)
-  })
-
-  it("implements the chain function", (done) => {
-    let base = class {
-      a() { return { a: 1 } }
-      b() { return { b: 2 } }
-      c({ promise: { resolve } }) { setTimeout(() => resolve({ c: 3 }), 1) }
-      d({ promise: { resolve } }) { resolve({ d: 4 }) }
-      e() { return { e: 5 } }
-      f({ promise: { resolve } }) { resolve({ f: 6 }) }
-      empty({ value }) { return value || true }
-      chain({ promise: { chain } }) { return chain(this.c, this.empty, this.d) }
-
-      run({ promise: { chain } }) {
-        return chain(
-          chain(this.a, this.empty),
-          this.b, this.chain, this.e, this.f
-        )
-      }
-    }
-
-    let test = makeTest().base(base)
-    let value = test().run()
-    let expected = { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, async: true, value: { b: 2 } }
-    
-    value.then(args => {
-      expect(args).toEqual(expected)
-      done()
-    })
-
-    delete value.then
-    expect(value).toEqual({
-      a: 1, b: 2, async: true, value: { b: 2 }
-    })
-  })
-
-  it("returns a synchronous value from the chain function", () => {
-    let base = class {
-      a() { return "a" }
-      b({ promise: { resolve } }) { resolve("b") }
-
-      run({ promise: { chain } }) {
-        return chain(this.a, this.b)
-      }
-    }
-
-    let test = makeTest().base(base)
-    expect(test().run().value).toBe("b")
-  })
-
-  it("allows chains from multiple functions", (done) => {
-    let base = class {
-      a() { return { a: 1 } }
-      b() { return { b: 2 } }
-      c() { return { c: 3 } }
-      d() { return { d: 4 } }
-
-      chain({ promise: { chain } }) {
-        return chain(this.c, this.d)
-      }
-
-      chain2({ promise: { chain } }) {
-        return chain(this.a, this.b, this.chain)
-      }
-
-      run({ promise: { chain } }) {
-        return this.chain2()
-      }
-    }
-
-    let test = makeTest().base(base)
-    
-    let output = test().run()
-    let expected = { a: 1, b: 2, c: 3, d: 4, value: { d: 4 } }
-
-    output.then(args => {
-      expect(args).toEqual(expected)
-      done()
-    })
-
-    delete output.then
-    expect(output).toEqual(expected)
   })
 
   it("makes hard returns thenable", (done) => {
