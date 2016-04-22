@@ -1,6 +1,6 @@
 # IndustryStandardIO [![Build Status](https://travis-ci.org/invrs/industry-standard-io.svg?branch=master)](https://travis-ci.org/invrs/industry-standard-io)
 
-Adds [StandardIO](https://github.com/invrs/standard-io) compliance to factory instance methods.
+Adds [StandardIO](https://github.com/invrs/standard-io) compliance to factory methods.
 
 ## Requirements
 
