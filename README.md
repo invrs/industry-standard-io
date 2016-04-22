@@ -14,17 +14,17 @@ import { instance } from "industry-instance"
 import { functions } from "industry-functions"
 import { standard_io } from "industry-standard-io"
 
-let test = factory()
-  .set("instance", instance)
-  .set("functions", functions)
-  .set("standard_io", standard_io)
-
-test = test(class {
-  hello(...args) {
+class Test {
+  hello(args) {
     args // { a: 1, b: 2, args: { a: 1, b: 2 }, _args: [ "world" ] }
     return true
   }
-})
+}
+
+let test = factory(Test)
+  .set("instance", instance)
+  .set("functions", functions)
+  .set("standard_io", standard_io)
 
 test().hello("world", { a: 1 }, { b: 2 }).then((value) => {
   value // true
