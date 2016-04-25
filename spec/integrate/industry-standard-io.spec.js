@@ -121,9 +121,69 @@ describe("standard_io", () => {
     
     expect(output.value).toEqual(true)
     
-    output.then((args) => {
+    output.then(args => {
       expect(args).toEqual(true)
       done()
     })
+  })
+
+  it("makes rejected functions catchable", (done) => {
+    let base = class {
+      hello({ promise: { reject } }) { reject("rejected") }
+    }
+
+    let test = makeTest().base(base)
+    let output = test().hello()
+    
+    expect(output.value).toEqual(undefined)
+    
+    output.catch(e => {
+      expect(e).toEqual("rejected")
+      done()
+    })
+  })
+
+  it("makes thrown functions catchable", (done) => {
+    let base = class {
+      hello() { throw "rejected" }
+    }
+
+    let test = makeTest().base(base)
+    let output = test().hello()
+    
+    expect(output.value).toEqual(undefined)
+    
+    output.catch(e => {
+      expect(e).toEqual("rejected")
+      done()
+    })
+  })
+
+  it("calls exception function on reject", (done) => {
+    let base = class {
+      exception({ e }) {
+        expect(e).toEqual("rejected")
+        done()
+      }
+
+      hello({ promise: { reject } }) { reject("rejected") }
+    }
+
+    let test = makeTest().base(base)
+    test().hello()
+  })
+
+  it("calls exception function on throw", (done) => {
+    let base = class {
+      exception({ e }) {
+        expect(e).toEqual("rejected")
+        done()
+      }
+
+      hello() { throw "rejected" }
+    }
+
+    let test = makeTest().base(base)
+    test().hello()
   })
 })

@@ -1,5 +1,11 @@
 import { objectArgument, returnObject } from "standard-io"
 
+function exception(e) {
+  if (this.exception) {
+    this.exception({ e })
+  }
+}
+
 function patch(ignore, type) {
   for (let name in this.functions()) {
     if (ignore[type].indexOf(name) == -1) {
@@ -25,15 +31,25 @@ function resolveReject() {
 
 function runAndReturn({ args, fn, ignore, name, bind_to }) {
   let { promise, resolve, reject, status } = resolveReject()
+  let value
 
   args = objectArgument({ args, ignore: ignore.args })
   args.promise = { resolve, reject }
   
-  let value = fn.bind(bind_to)(args)
+  try {
+    value = fn.bind(bind_to)(args)
+  } catch (e) {
+    reject(e)
+  }
 
   if (status.value) {
     value = status.value
   }
+
+  promise = promise.catch(e => {
+    exception.bind(bind_to)(e)
+    throw e
+  })
   
   return returnObject({ promise, value })
 }
