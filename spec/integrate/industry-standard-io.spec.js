@@ -135,7 +135,7 @@ describe("standard_io", () => {
     let test = makeTest().base(base)
     let output = test().hello()
     
-    expect(output.value).toEqual(undefined)
+    expect(output.value).toEqual({})
     
     output.catch(e => {
       expect(e).toEqual("rejected")
@@ -151,7 +151,7 @@ describe("standard_io", () => {
     let test = makeTest().base(base)
     let output = test().hello()
     
-    expect(output.value).toEqual(undefined)
+    expect(output.value).toEqual({})
     
     output.catch(e => {
       expect(e).toEqual("rejected")
