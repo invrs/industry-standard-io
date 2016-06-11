@@ -22,23 +22,22 @@
   },
   "homepage": "https://github.com/invrs/industry-standard-io#readme",
   "dependencies": {
-    "babel-runtime": "^6.6.1",
-    "standard-io": "^0.4.0"
+    "babel-runtime": "*",
+    "standard-io": "*"
   },
   "devDependencies": {
-    "babel": "^6.5.2",
-    "babel-cli": "^6.5.1",
-    "babel-core": "^6.5.1",
-    "babel-plugin-syntax-async-functions": "^6.5.0",
-    "babel-plugin-transform-async-to-generator": "^6.5.0",
-    "babel-plugin-transform-object-rest-spread": "^6.5.0",
-    "babel-plugin-transform-runtime": "^6.6.0",
-    "babel-preset-es2015": "^6.5.0",
-    "immutable": "^3.7.6",
-    "industry": "",
-    "industry-functions": "",
-    "industry-instance": "",
-    "jasmine": "^2.4.1",
-    "source-map-support": "^0.4.0"
+    "babel": "6.5.2",
+    "babel-cli": "6.9.0",
+    "babel-core": "6.9.1",
+    "babel-plugin-syntax-async-functions": "6.8.0",
+    "babel-plugin-transform-async-to-generator": "6.8.0",
+    "babel-plugin-transform-object-rest-spread": "6.8.0",
+    "babel-plugin-transform-runtime": "6.9.0",
+    "babel-preset-es2015": "6.9.0",
+    "industry": "2.8.5",
+    "industry-functions": "0.2.4",
+    "industry-instance": "0.1.0",
+    "jasmine": "2.4.1",
+    "source-map-support": "0.4.0"
   }
 }
