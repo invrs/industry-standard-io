@@ -34,9 +34,9 @@
     "babel-plugin-transform-object-rest-spread": "6.8.0",
     "babel-plugin-transform-runtime": "6.9.0",
     "babel-preset-es2015": "6.9.0",
-    "industry": "2.8.5",
-    "industry-functions": "0.2.4",
-    "industry-instance": "0.1.0",
+    "industry": "*",
+    "industry-functions": "*",
+    "industry-instance": "*",
     "jasmine": "2.4.1",
     "source-map-support": "0.4.0"
   }
